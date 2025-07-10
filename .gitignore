@@ -1,0 +1,14 @@
+# secrets
+.env
+
+# dependencies
+node_modules/
+
+# file uploads
+uploads/
+
+# OS junk
+.DS_Store
+
+# log files
+*.log
