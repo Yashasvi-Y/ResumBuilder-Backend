@@ -70,6 +70,7 @@ const ResumeSchema = new mongoose.Schema(
                 title: String,
                 issuer: String,
                 year: String,
+                link: String,
             },
         ],
         languages: [
@@ -79,6 +80,16 @@ const ResumeSchema = new mongoose.Schema(
             },
         ],
         interests: [String],
+        rating: {
+            type: Number,
+            min: 1,
+            max: 5,
+            default: null,
+        },
+        userHasRated: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },

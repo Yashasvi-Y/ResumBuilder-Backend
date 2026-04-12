@@ -7,6 +7,9 @@ import mongoose from 'mongoose'; // <-- add this import
 
 import authRoutes from './routes/authRoutes.js';
 import resumeRoutes from './routes/resumeRoutes.js';
+import aiRoutes from './routes/aiRoutes.js';
+import statsRoutes from './routes/statsRoutes.js';
+import ratingRoutes from './routes/ratingRoutes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -38,6 +41,9 @@ connectDB();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/rating', ratingRoutes);
 
 // Static uploads folder
 app.use(
