@@ -48,6 +48,11 @@ export const uploadResumeImages = async (req, res) => {
 
     // 🧹 Handle profile image (optional)
     if (newProfileImage) {
+      // Ensure profileInfo exists
+      if (!resume.profileInfo) {
+        resume.profileInfo = {};
+      }
+
       if (resume.profileInfo?.profilePreviewUrl) {
         const oldProfilePath = path.join(
           uploadsFolder,
