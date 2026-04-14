@@ -45,15 +45,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/rating', ratingRoutes);
 
-// Static uploads folder
-app.use(
-  '/uploads',
-  express.static(path.join(__dirname, 'uploads'), {
-    setHeaders: (res, _path) => {
-      res.set('Access-Control-Allow-Origin', 'https://resumexpert-frontend.onrender.com');
-    },
-  })
-);
+// ✅ Static uploads folder removed - using Cloudinary URLs directly
 
 // Test Route
 app.get('/', (req, res) => {

@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import Resume from '../models/Resume.js';
 
+console.log("🔥 NEW UPLOAD CODE RUNNING - Using base64 encoding");
+
 export const createResume = async (req, res) => {
     try {
         const { title } = req.body;
@@ -138,16 +140,7 @@ export const deleteResume = async (req, res) => {
             return res.status(404).json({ message: 'Resume not found or unauthorized' });
         }
 
-        // Folder where uploads are stored
-        const uploadsFolder = path.join(process.cwd(), 'uploads');
-
-        // Delete thumbnail image (no longer needed with Cloudinary)
-        // Files are stored in Cloudinary, so local cleanup is not required
-
-        // Delete profile preview image (no longer needed with Cloudinary)
-        // Files are stored in Cloudinary, so local cleanup is not required
-
-        // Delete the resume document
+        // Delete the resume document (images in Cloudinary are not deleted - they remain accessible via URL)
         const deleted = await Resume.findOneAndDelete({
             _id: req.params.id,
             userId: req.user._id,
