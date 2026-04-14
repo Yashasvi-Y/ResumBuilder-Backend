@@ -1,6 +1,4 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-import path from "path";
 import Resume from "../models/Resume.js";
 
 cloudinary.config({
@@ -24,7 +22,7 @@ export const uploadResumeImages = async (req, res) => {
       });
     }
 
-    // Get files from multer
+    // Get files from multer (now using memory storage - files are in buffer)
     const newThumbnail = req.files?.thumbnail?.[0];
     const newProfileImage = req.files?.profileImage?.[0];
 
@@ -35,20 +33,22 @@ export const uploadResumeImages = async (req, res) => {
       });
     }
 
-    // Upload thumbnail to Cloudinary via Buffer
-    console.log(`📤 Uploading thumbnail from: ${newThumbnail.path}`);
-    const thumbnailBuffer = fs.readFileSync(newThumbnail.path);
-    console.log(`📊 Buffer size: ${thumbnailBuffer.length} bytes`);
+    // Upload thumbnail to Cloudinary via Buffer (from memory storage)
+    console.log(`📤 Uploading thumbnail, buffer size: ${newThumbnail.buffer.length} bytes`);
 
     const thumbnailResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
         { folder: "resumes" },
         (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
+          if (error) {
+            console.error(`❌ Cloudinary error: ${error.message}`);
+            reject(error);
+          } else {
+            resolve(result);
+          }
         }
       );
-      stream.end(thumbnailBuffer);
+      stream.end(newThumbnail.buffer);
     });
 
     console.log(`✅ Thumbnail uploaded: ${thumbnailResult.secure_url}`);
@@ -60,19 +60,21 @@ export const uploadResumeImages = async (req, res) => {
         resume.profileInfo = {};
       }
 
-      console.log(`📤 Uploading profile image from: ${newProfileImage.path}`);
-      const profileBuffer = fs.readFileSync(newProfileImage.path);
-      console.log(`📊 Buffer size: ${profileBuffer.length} bytes`);
+      console.log(`📤 Uploading profile image, buffer size: ${newProfileImage.buffer.length} bytes`);
 
       const profileResult = await new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
           { folder: "resumes" },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
+            if (error) {
+              console.error(`❌ Cloudinary error: ${error.message}`);
+              reject(error);
+            } else {
+              resolve(result);
+            }
           }
         );
-        stream.end(profileBuffer);
+        stream.end(newProfileImage.buffer);
       });
 
       console.log(`✅ Profile image uploaded: ${profileResult.secure_url}`);
@@ -81,14 +83,6 @@ export const uploadResumeImages = async (req, res) => {
 
     await resume.save();
 
-    // Cleanup local files
-    try {
-      if (fs.existsSync(newThumbnail.path)) fs.unlinkSync(newThumbnail.path);
-      if (newProfileImage && fs.existsSync(newProfileImage.path)) fs.unlinkSync(newProfileImage.path);
-    } catch (err) {
-      console.warn(`⚠️ Could not delete local files: ${err.message}`);
-    }
-
     return res.status(200).json({
       message: "Images uploaded successfully",
       thumbnailLink: resume.thumbnailLink,
@@ -96,6 +90,7 @@ export const uploadResumeImages = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ Error uploading images:", err.message);
+    console.error("Full error:", err);
 
     return res.status(500).json({
       message: "Failed to upload images",
