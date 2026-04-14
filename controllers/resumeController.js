@@ -141,24 +141,11 @@ export const deleteResume = async (req, res) => {
         // Folder where uploads are stored
         const uploadsFolder = path.join(process.cwd(), 'uploads');
 
-        // Delete thumbnail image
-        if (resume.thumbnailLink) {
-            const oldThumbnail = path.join(uploadsFolder, path.basename(resume.thumbnailLink));
-            if (fs.existsSync(oldThumbnail)) {
-                fs.unlinkSync(oldThumbnail);
-            }
-        }
+        // Delete thumbnail image (no longer needed with Cloudinary)
+        // Files are stored in Cloudinary, so local cleanup is not required
 
-        // Delete profile preview image
-        if (resume.profileInfo?.profilePreviewUrl) {
-            const oldProfile = path.join(
-                uploadsFolder,
-                path.basename(resume.profileInfo.profilePreviewUrl)
-            );
-            if (fs.existsSync(oldProfile)) {
-                fs.unlinkSync(oldProfile);
-            }
-        }
+        // Delete profile preview image (no longer needed with Cloudinary)
+        // Files are stored in Cloudinary, so local cleanup is not required
 
         // Delete the resume document
         const deleted = await Resume.findOneAndDelete({
