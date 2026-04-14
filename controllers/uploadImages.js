@@ -22,37 +22,29 @@ export const uploadResumeImages = async (req, res) => {
       });
     }
 
-    // Get files from multer (now using memory storage - files are in buffer)
+    // Debug: Log all files received
+    console.log("FILES:", req.files);
+
     const newThumbnail = req.files?.thumbnail?.[0];
     const newProfileImage = req.files?.profileImage?.[0];
 
-    // ❌ If thumbnail missing → reject
     if (!newThumbnail) {
-      return res.status(400).json({
-        message: "Thumbnail is required",
-      });
+      return res.status(400).json({ message: "No file uploaded" });
     }
 
-    // Upload thumbnail to Cloudinary via Buffer (from memory storage)
-    console.log(`📤 Uploading thumbnail, buffer size: ${newThumbnail.buffer.length} bytes`);
+    // 🔥 Convert buffer to base64
+    const base64 = newThumbnail.buffer.toString("base64");
+    const dataURI = `data:${newThumbnail.mimetype};base64,${base64}`;
 
-    const thumbnailResult = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        { folder: "resumes" },
-        (error, result) => {
-          if (error) {
-            console.error(`❌ Cloudinary error: ${error.message}`);
-            reject(error);
-          } else {
-            resolve(result);
-          }
-        }
-      );
-      stream.end(newThumbnail.buffer);
+    // ☁️ Upload thumbnail to Cloudinary with user folder
+    console.log(`📤 Uploading thumbnail to Cloudinary...`);
+    const thumbnailResult = await cloudinary.uploader.upload(dataURI, {
+      folder: `resumes/${req.user._id}`,
     });
 
-    console.log(`✅ Thumbnail uploaded: ${thumbnailResult.secure_url}`);
+    // 💾 Save URL in MongoDB
     resume.thumbnailLink = thumbnailResult.secure_url;
+    console.log(`✅ Thumbnail uploaded: ${thumbnailResult.secure_url}`);
 
     // Upload profile image if provided
     if (newProfileImage) {
@@ -60,25 +52,16 @@ export const uploadResumeImages = async (req, res) => {
         resume.profileInfo = {};
       }
 
-      console.log(`📤 Uploading profile image, buffer size: ${newProfileImage.buffer.length} bytes`);
+      console.log(`📤 Uploading profile image to Cloudinary...`);
+      const base64Profile = newProfileImage.buffer.toString("base64");
+      const dataURIProfile = `data:${newProfileImage.mimetype};base64,${base64Profile}`;
 
-      const profileResult = await new Promise((resolve, reject) => {
-        const stream = cloudinary.uploader.upload_stream(
-          { folder: "resumes" },
-          (error, result) => {
-            if (error) {
-              console.error(`❌ Cloudinary error: ${error.message}`);
-              reject(error);
-            } else {
-              resolve(result);
-            }
-          }
-        );
-        stream.end(newProfileImage.buffer);
+      const profileResult = await cloudinary.uploader.upload(dataURIProfile, {
+        folder: `resumes/${req.user._id}`,
       });
 
-      console.log(`✅ Profile image uploaded: ${profileResult.secure_url}`);
       resume.profileInfo.profilePreviewUrl = profileResult.secure_url;
+      console.log(`✅ Profile image uploaded: ${profileResult.secure_url}`);
     }
 
     await resume.save();
